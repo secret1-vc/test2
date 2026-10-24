@@ -12,12 +12,12 @@ import java.util.List;
 import java.util.Random;
 
 public final class LyricsHud {
-    private static final int[] NEON = {0xFF2BD1, 0x2BD1FF, 0xB66BFF, 0xFFE14D, 0x4DFF9E};
+    static final int[] NEON = {0xFF2BD1, 0x2BD1FF, 0xB66BFF, 0xFFE14D, 0x4DFF9E};
     private static final DateTimeFormatter CLOCK = DateTimeFormatter.ofPattern("HH:mm");
 
     private LyricsHud() {}
 
-    public static void render(GuiGraphics g) {
+    public static void render(GuiGraphics g, float partial) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.options.hideGui || mc.screen != null) return;
         LyricsPlayer p = NeonLyricsClient.PLAYER;
@@ -33,21 +33,23 @@ public final class LyricsHud {
         int i = p.currentIndex();
         long now = p.nowMs();
 
-        if (Settings.showWords) words(g, font, lines, i, now, w, h);
-        if (Settings.showPill && i >= 0) pill(g, font, lines, i, now, w);
+        if (Settings.showWords) WorldWords.render(g, font, lines, i, now, w, h, partial);
+        if (Settings.showPill) pill(g, font, lines, i, now, w);
     }
 
-    private static long lineEnd(List<LyricsPlayer.Line> lines, int k) {
+    static long lineEnd(List<LyricsPlayer.Line> lines, int k) {
         return k + 1 < lines.size() ? lines.get(k + 1).timeMs() : lines.get(k).timeMs() + 4000;
     }
 
     // ---- karaoke bar ------------------------------------------------------------------
 
     private static void pill(GuiGraphics g, Font font, List<LyricsPlayer.Line> lines, int i, long now, int w) {
-        String text = lines.get(i).text();
-        long start = lines.get(i).timeMs();
-        long dur = Math.max(500, lineEnd(lines, i) - start);
-        float prog = Math.max(0f, Math.min(1f, (now - start) / (dur * 0.9f)));
+        String text = i >= 0 ? lines.get(i).text() : "";
+        boolean showTitle = text.isEmpty();
+        if (showTitle) text = Settings.songTitle.isEmpty() ? "" : "\u266A " + Settings.songTitle;
+        long start = i >= 0 ? lines.get(i).timeMs() : 0;
+        long dur = i >= 0 ? Math.max(500, lineEnd(lines, i) - start) : 1000;
+        float prog = showTitle ? 0f : Math.max(0f, Math.min(1f, (now - start) / (dur * 0.9f)));
 
         int pillW = Math.max(180, Math.min(340, w - 160));
         int pillH = 22;
@@ -79,50 +81,17 @@ public final class LyricsHud {
         pose.pushMatrix();
         pose.translate(tx, ty);
         pose.scale(sc, sc);
-        Gfx.text(g, font, text, 0, 0, 1f, 0x8C86A6);
+        Gfx.text(g, font, text, 0, 0, 1f, showTitle ? 0xE8E8F0 : 0x8C86A6);
         if (sung > 0) Gfx.text(g, font, text.substring(0, sung), 0, 0, 1f, 0xFFFFFF);
         pose.popMatrix();
     }
 
-    // ---- floating words -----------------------------------------------------------------
+    // ---- floating words are drawn by WorldWords ----
 
-    private static void words(GuiGraphics g, Font font, List<LyricsPlayer.Line> lines, int cur, long now, int w, int h) {
-        if (cur < 0) return;
-        float baseScale = 1.2f + Settings.wordSize * 1.6f;
-        for (int k = Math.max(0, cur - 1); k <= cur; k++) {
-            String text = lines.get(k).text();
-            if (text.isEmpty()) continue;
-            long start = lines.get(k).timeMs();
-            long end = lineEnd(lines, k);
-            long dur = Math.max(800, end - start);
-            if (now > end + 1200) continue;
-            float outA = now > end ? 1f - (now - end) / 1200f : 1f;
-            String[] ws = text.split("\\s+");
-            for (int j = 0; j < ws.length; j++) {
-                long appear = start + (long) (dur * 0.85 * j / ws.length);
-                if (now < appear) continue;
-                float age = (now - appear) / 1000f;
-                float inA = Math.min(1f, (now - appear) / 220f);
-                Random r = new Random(k * 7919L + j * 104729L + 17);
-                float cx = w * (0.14f + 0.72f * r.nextFloat());
-                float cy = h * (0.20f + 0.50f * r.nextFloat()) - age * 3f;
-                float ang = (r.nextFloat() - 0.5f) * 0.5f;
-                float sc = baseScale * (0.8f + r.nextFloat() * 0.6f);
-                float pop = 1f + 0.35f * Math.max(0f, 1f - (now - appear) / 160f);
-                int rgb = switch (Settings.wordColorMode) {
-                    case 1 -> NEON[r.nextInt(NEON.length)];
-                    case 2 -> Settings.themeRgb();
-                    default -> 0xFFFFFF;
-                };
-                drawWord(g, font, ws[j], cx, cy, ang, sc * pop, rgb, Math.min(inA, outA));
-            }
-        }
-    }
-
-    private static void drawWord(GuiGraphics g, Font font, String word, float cx, float cy, float ang,
+    static void drawWord(GuiGraphics g, Font font, String word, float cx, float cy, float ang,
                                  float scale, int rgb, float alpha) {
         if (alpha < 0.05f) return;
-        Component c = Component.literal(word).withStyle(ChatFormatting.ITALIC);
+        Component c = Component.literal(word).withStyle(ChatFormatting.ITALIC, ChatFormatting.BOLD);
         int x = -font.width(c) / 2;
         int y = -font.lineHeight / 2;
         var pose = g.pose();

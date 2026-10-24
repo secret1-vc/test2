@@ -69,7 +69,10 @@ public final class MediaWatcher {
         int brace = out.lastIndexOf('{');
         if (brace < 0) return;
         JsonObject o = JsonParser.parseString(out.substring(brace)).getAsJsonObject();
-        if (!o.has("title")) return;
+        if (!o.has("title")) {
+            if (!lastKey.isEmpty()) { lastKey = ""; NeonLyricsClient.clearSong(); }
+            return;
+        }
 
         String title = o.get("title").getAsString();
         String artist = o.has("artist") ? o.get("artist").getAsString() : "";

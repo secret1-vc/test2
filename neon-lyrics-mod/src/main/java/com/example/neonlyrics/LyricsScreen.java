@@ -85,7 +85,8 @@ public class LyricsScreen extends Screen {
     private void buildLyrics() {
         addRenderableWidget(toggle(rx, py + 58, 170, "Top bar", () -> Settings.showPill, v -> Settings.showPill = v));
         addRenderableWidget(toggle(rx, py + 82, 170, "Floating words", () -> Settings.showWords, v -> Settings.showWords = v));
-        addRenderableWidget(new Slide(rx, py + 106, 170, 18, "Word size", Settings.wordSize, v -> Settings.wordSize = (float) v));
+        addRenderableWidget(toggle(rx, py + 106, 170, "Words chase you", () -> Settings.chase, v -> Settings.chase = v));
+        addRenderableWidget(new Slide(rx, py + 130, 170, 18, "Word size", Settings.wordSize, v -> Settings.wordSize = (float) v));
     }
 
     private void buildStyle() {

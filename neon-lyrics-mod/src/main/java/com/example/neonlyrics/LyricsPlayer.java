@@ -69,6 +69,9 @@ public class LyricsPlayer {
 
     public void stop() { playing = false; pausedMs = 0; }
 
+    /** Forget the current song completely (no lyrics, nothing shown). */
+    public void clear() { lines = new ArrayList<>(); stop(); }
+
     /** Position in the song (without the user offset). */
     public long positionMs() {
         return playing ? (System.nanoTime() - startNanos) / 1_000_000L : pausedMs;

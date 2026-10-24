@@ -15,12 +15,13 @@ public final class Settings {
 
     public static int sky = 0;
     public static float strength = 0.6f, speed = 0.5f, pattern = 0.5f;
-    public static boolean showPill = true, showWords = true, autoDetect = false;
+    public static boolean showPill = true, showWords = true, autoDetect = false, chase = true;
     public static float wordSize = 0.5f;
     public static int wordColorMode = 0, theme = 0;
 
     /** Shown in the settings screen; not saved. */
     public static volatile String nowPlaying = "Nothing playing";
+    public static volatile String songTitle = "";
 
     public static int themeRgb() { return THEME_RGB[theme % THEME_RGB.length]; }
 
@@ -37,6 +38,7 @@ public final class Settings {
             showPill = Boolean.parseBoolean(p.getProperty("showPill", "true"));
             showWords = Boolean.parseBoolean(p.getProperty("showWords", "true"));
             autoDetect = Boolean.parseBoolean(p.getProperty("autoDetect", "false"));
+            chase = Boolean.parseBoolean(p.getProperty("chase", "true"));
             wordSize = Float.parseFloat(p.getProperty("wordSize", "0.5"));
             wordColorMode = Integer.parseInt(p.getProperty("wordColorMode", "0"));
             theme = Integer.parseInt(p.getProperty("theme", "0"));
@@ -52,6 +54,7 @@ public final class Settings {
         p.setProperty("showPill", String.valueOf(showPill));
         p.setProperty("showWords", String.valueOf(showWords));
         p.setProperty("autoDetect", String.valueOf(autoDetect));
+        p.setProperty("chase", String.valueOf(chase));
         p.setProperty("wordSize", String.valueOf(wordSize));
         p.setProperty("wordColorMode", String.valueOf(wordColorMode));
         p.setProperty("theme", String.valueOf(theme));

@@ -53,6 +53,7 @@ public final class LyricsCommand {
                         p.loadFile(f);
                         p.play();
                         Settings.nowPlaying = name.replace(".lrc", "");
+                        Settings.songTitle = Settings.nowPlaying;
                         c.getSource().sendFeedback(Component.literal("Playing " + name));
                     } catch (Exception e) {
                         c.getSource().sendError(Component.literal("Failed to load: " + e.getMessage()));
